@@ -3,7 +3,7 @@ name: Push CSV to GitLab
 on:
   push:
     paths:
-      - "data.csv"
+      - "obstable.csv"
     branches:
       - main
 
@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Push data.csv to GitLab repo
+      - name: Push obstable.csv to GitLab repo
         env:
           GITLAB_REPO_URL: ${{ secrets.GITLAB_REPO_URL }}
           GITLAB_USERNAME: ${{ secrets.GITLAB_USERNAME }}
@@ -31,11 +31,11 @@ jobs:
 
           # Create a temporary repo containing ONLY the CSV
           tmpdir="$(mktemp -d)"
-          cp data.csv "$tmpdir/data.csv"
+          cp obstable.csv "$tmpdir/obstable.csv"
           cd "$tmpdir"
           git init
-          git add data.csv
-          git commit -m "Update data.csv from GitHub (${GITHUB_SHA})"
+          git add obstable.csv
+          git commit -m "Update obstable.csv from GitHub (${GITHUB_SHA})"
 
           # Push to GitLab main (you can change 'main' if your GitLab default is different)
           # URL embeds token: https://user:token@gitlab...
