@@ -1,0 +1,45 @@
+name: Push CSV to GitLab
+
+on:
+  push:
+    paths:
+      - "data.csv"
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Push data.csv to GitLab repo
+        env:
+          GITLAB_REPO_URL: ${{ secrets.GITLAB_REPO_URL }}
+          GITLAB_USERNAME: ${{ secrets.GITLAB_USERNAME }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # Configure git identity for the bot commit
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create a temporary repo containing ONLY the CSV
+          tmpdir="$(mktemp -d)"
+          cp data.csv "$tmpdir/data.csv"
+          cd "$tmpdir"
+          git init
+          git add data.csv
+          git commit -m "Update data.csv from GitHub (${GITHUB_SHA})"
+
+          # Push to GitLab main (you can change 'main' if your GitLab default is different)
+          # URL embeds token: https://user:token@gitlab...
+          authed_url="$(echo "$GITLAB_REPO_URL" | sed "s#https://#https://${GITLAB_USERNAME}:${GITLAB_TOKEN}@#")"
+          git remote add gitlab "$authed_url"
+          git branch -M main
+          git push --force gitlab main
